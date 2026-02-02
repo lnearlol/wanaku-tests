@@ -197,7 +197,9 @@ Each test module focuses on specific capability type. Integration tests are sepa
 
 ## MCP Client Implementation
 
-**TODO:** Define transport protocol, authentication flow, and required API methods.
+The project will use the MCPAssured test client from the Quarkus MCP Server project [1].
+
+1. https://docs.quarkiverse.io/quarkus-mcp-server/dev/#_testing
 
 ## CLI Integration
 

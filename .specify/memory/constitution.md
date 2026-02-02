@@ -1,11 +1,12 @@
 <!--
 Sync Impact Report
 ==================
-Version change: 1.0.0 -> 1.1.0
-Modified principles: None renamed
-Added sections:
-  - VI. Layered Isolation (new principle)
+Version change: 1.1.0 -> 1.1.1
+Modified principles: None
+Added sections: None
 Removed sections: None
+Modified sections:
+  - Technical Standards > Language and Framework: Added Java 21 version specification
 Templates requiring updates:
   - .specify/templates/plan-template.md: ✅ compatible (no changes needed)
   - .specify/templates/spec-template.md: ✅ compatible (no changes needed)
@@ -95,7 +96,8 @@ The framework MUST apply layered isolation with tiered infrastructure lifecycles
 ## Technical Standards
 
 ### Language and Framework
-- Java with JUnit 5 as the test framework
+- Java 21 as the required Java version
+- JUnit 5 as the test framework
 - Testcontainers for infrastructure management
 - Maven as the build system
 - ProcessBuilder for local process management
@@ -158,4 +160,4 @@ This constitution establishes the non-negotiable principles for the Wanaku Test 
 - Violations MUST be justified in Complexity Tracking section
 - Regular review of test suite health against principles
 
-**Version**: 1.1.0 | **Ratified**: 2026-02-02 | **Last Amended**: 2026-02-02
+**Version**: 1.1.1 | **Ratified**: 2026-02-02 | **Last Amended**: 2026-02-02
