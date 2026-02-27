@@ -24,7 +24,6 @@ public class RouterManager extends ProcessManager {
     private final TestConfiguration config;
     private int httpPort;
     private int grpcPort;
-    private Path dataDir;
 
     public RouterManager(TestConfiguration config) {
         this.config = config;
@@ -36,7 +35,6 @@ public class RouterManager extends ProcessManager {
     public void prepare() {
         this.httpPort = PortUtils.findAvailablePort();
         this.grpcPort = PortUtils.findAvailablePort();
-        this.dataDir = config.getTempDataDir();
 
         LOG.debug("Router prepared with HTTP port {} and gRPC port {}", httpPort, grpcPort);
 
@@ -44,6 +42,7 @@ public class RouterManager extends ProcessManager {
         addSystemProperty("quarkus.http.port", String.valueOf(httpPort));
         addSystemProperty("quarkus.grpc.server.port", String.valueOf(grpcPort));
 
+        Path dataDir = config.getTempDataDir();
         if (dataDir != null) {
             addSystemProperty("wanaku.data.dir", dataDir.toAbsolutePath().toString());
         }
@@ -89,13 +88,6 @@ public class RouterManager extends ProcessManager {
      */
     public int getGrpcPort() {
         return grpcPort;
-    }
-
-    /**
-     * Gets the data directory path.
-     */
-    public Path getDataDir() {
-        return dataDir;
     }
 
     /**

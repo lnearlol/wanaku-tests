@@ -45,14 +45,14 @@ public final class HealthCheckUtils {
      *
      * @param url      the health check URL
      * @param timeout  maximum time to wait
-     * @param interval time between health check attempts (ignored, uses Awaitility default 100ms)
+     * @param interval time between health check attempts
      * @return true if the endpoint became healthy within the timeout
      */
     public static boolean waitForHealthy(String url, Duration timeout, Duration interval) {
         LOG.debug("Waiting for health check: {} (timeout: {}s)", url, timeout.toSeconds());
 
         try {
-            Awaitility.await().atMost(timeout).until(() -> checkHealth(url));
+            Awaitility.await().atMost(timeout).pollInterval(interval).until(() -> checkHealth(url));
             LOG.debug("Health check passed");
             return true;
         } catch (ConditionTimeoutException e) {

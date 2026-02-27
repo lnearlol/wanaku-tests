@@ -6,9 +6,10 @@ Integration test framework for [Wanaku](https://github.com/wanaku-ai/wanaku) —
 
 This framework tests Wanaku capabilities:
 
-- **HTTP Capability** — register HTTP endpoints as tools, invoke via MCP *(current)*
-- **Resources** — resource providers *(planned)*
+- **HTTP Capability** — register HTTP endpoints as tools, invoke via MCP
+- **Resources** — expose, list, read, and remove file resources via REST API, MCP, and CLI
 - **Camel Integration** — Apache Camel-based capabilities *(planned)*
+- **Integration Tests** — cross-capability tests, e2e flows *(planned)*
 
 ## Prerequisites
 
@@ -60,10 +61,10 @@ wanaku --version
 
 **Option B: Use CLI JAR from build**
 ```bash
-cp -r $WANAKU_DIR/wanaku/cli/target/quarkus-app artifacts/wanaku-cli
+cp -r $WANAKU_DIR/wanaku/cli/target/quarkus-app artifacts/cli-0.1.0-SNAPSHOT
 ```
 
-> **Note:** CLI tests are skipped if CLI is not available.
+> **Note:** CLI tests will fail if CLI is not available.
 
 ## Run Tests
 
@@ -78,7 +79,7 @@ mvn clean install -pl http-capability-tests -Dtest=HttpToolRegistrationITCase#sh
 mvn clean install -Dwanaku.log.level=DEBUG
 
 # Run with CLI JAR instead of system CLI
-mvn clean install -Dwanaku.test.cli.path=../artifacts/wanaku-cli/quarkus-run.jar
+mvn clean install -Dwanaku.test.cli.path=../artifacts/cli-0.1.0-SNAPSHOT/quarkus-run.jar
 ```
 
 ## Project Structure
@@ -91,6 +92,11 @@ wanaku-tests/
 │       ├── HttpToolCliITCase.java          # CLI tool management
 │       ├── HttpToolRegistrationITCase.java # Register, list, remove tools via REST API
 │       └── PublicApiITCase.java            # External API invocations
+├── resources-tests/       # Resource provider tests (11 tests)
+│   └── src/test/java/ai/wanaku/test/resources/
+│       ├── RestApiResourceITCase.java     # Expose, list, remove resources via REST API (6)
+│       ├── McpResourceITCase.java         # List and read resources via MCP (3)
+│       └── CliResourceITCase.java         # Expose and remove resources via CLI (2)
 └── test-common/           # Shared infrastructure
     └── src/main/java/ai/wanaku/test/
         ├── base/      # BaseIntegrationTest
@@ -140,6 +146,6 @@ target/logs/
 ## Modules
 
 - [HTTP Capability Tests](http-capability-tests/README.md) — HTTP tool registration and invocation
-- *Resources Tests* — planned
+- [Resources Tests](resources-tests/README.md) — file resource management via REST API, MCP, and CLI
 - *Camel Integration Capability Tests* — planned
 - *Integration Tests* — cross-capability tests, e2e flows (planned)

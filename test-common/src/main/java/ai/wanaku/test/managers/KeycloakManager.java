@@ -187,7 +187,9 @@ public class KeycloakManager {
             LOG.debug("Obtained MCP token for user: {}", username);
             return extractToken(response.body());
         } catch (IOException | InterruptedException e) {
-            Thread.currentThread().interrupt();
+            if (e instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+            }
             throw new RuntimeException("Failed to get MCP token", e);
         }
     }

@@ -10,6 +10,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 ROUTER_URL="https://github.com/wanaku-ai/wanaku/releases/download/early-access/wanaku-router-backend-0.1.0-SNAPSHOT.zip"
 HTTP_URL="https://github.com/wanaku-ai/wanaku/releases/download/early-access/wanaku-tool-service-http-0.1.0-SNAPSHOT.zip"
+CLI_URL="https://github.com/wanaku-ai/wanaku/releases/download/early-access/cli-0.1.0-SNAPSHOT.zip"
 
 download_and_extract() {
     local url="$1"
@@ -28,6 +29,7 @@ download_and_extract() {
 
 download_and_extract "${ROUTER_URL}" "wanaku-router-backend"
 download_and_extract "${HTTP_URL}" "wanaku-tool-service-http"
+download_and_extract "${CLI_URL}" "cli"
 
 echo ""
 echo "All artifacts downloaded to ${SCRIPT_DIR}"

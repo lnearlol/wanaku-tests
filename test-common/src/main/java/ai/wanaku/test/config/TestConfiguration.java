@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
-import java.util.Optional;
 import ai.wanaku.test.WanakuTestConstants;
 
 /**
@@ -15,7 +14,7 @@ public class TestConfiguration {
 
     private final Path routerJarPath;
     private final Path httpToolServiceJarPath;
-    private final Path cliPath;
+    private final Path fileProviderJarPath;
     private final Path artifactsDir;
     private final Path tempDataDir;
     private final Duration defaultTimeout;
@@ -23,7 +22,7 @@ public class TestConfiguration {
     private TestConfiguration(Builder builder) {
         this.routerJarPath = builder.routerJarPath;
         this.httpToolServiceJarPath = builder.httpToolServiceJarPath;
-        this.cliPath = builder.cliPath;
+        this.fileProviderJarPath = builder.fileProviderJarPath;
         this.artifactsDir = builder.artifactsDir;
         this.tempDataDir = builder.tempDataDir;
         this.defaultTimeout = builder.defaultTimeout;
@@ -48,18 +47,21 @@ public class TestConfiguration {
                 .artifactsDir(artifactsDir)
                 .routerJarPath(findJar(artifactsDir, "wanaku-router"))
                 .httpToolServiceJarPath(findJar(artifactsDir, "wanaku-tool-service-http"))
-                .cliPath(Optional.ofNullable(System.getProperty(WanakuTestConstants.PROP_CLI_PATH))
-                        .map(Path::of)
-                        .orElse(null))
+                .fileProviderJarPath(findJar(artifactsDir, "wanaku-provider-file"))
                 .defaultTimeout(timeout)
                 .build();
     }
 
     private static Path findJar(Path artifactsDir, String prefix) {
         // Check system property first
-        String propKey = prefix.contains("router")
-                ? WanakuTestConstants.PROP_ROUTER_JAR
-                : WanakuTestConstants.PROP_HTTP_SERVICE_JAR;
+        String propKey;
+        if (prefix.contains("router")) {
+            propKey = WanakuTestConstants.PROP_ROUTER_JAR;
+        } else if (prefix.contains("provider-file")) {
+            propKey = WanakuTestConstants.PROP_FILE_PROVIDER_JAR;
+        } else {
+            propKey = WanakuTestConstants.PROP_HTTP_SERVICE_JAR;
+        }
         String explicitPath = System.getProperty(propKey);
         if (explicitPath != null) {
             return Path.of(explicitPath);
@@ -103,8 +105,8 @@ public class TestConfiguration {
         return httpToolServiceJarPath;
     }
 
-    public Path getCliPath() {
-        return cliPath;
+    public Path getFileProviderJarPath() {
+        return fileProviderJarPath;
     }
 
     public Path getArtifactsDir() {
@@ -122,7 +124,7 @@ public class TestConfiguration {
     public static class Builder {
         private Path routerJarPath;
         private Path httpToolServiceJarPath;
-        private Path cliPath;
+        private Path fileProviderJarPath;
         private Path artifactsDir;
         private Path tempDataDir;
         private Duration defaultTimeout = WanakuTestConstants.DEFAULT_TIMEOUT;
@@ -137,8 +139,8 @@ public class TestConfiguration {
             return this;
         }
 
-        public Builder cliPath(Path cliPath) {
-            this.cliPath = cliPath;
+        public Builder fileProviderJarPath(Path fileProviderJarPath) {
+            this.fileProviderJarPath = fileProviderJarPath;
             return this;
         }
 

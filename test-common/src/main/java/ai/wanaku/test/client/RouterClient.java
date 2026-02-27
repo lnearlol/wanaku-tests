@@ -16,6 +16,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ai.wanaku.test.WanakuTestConstants;
 import ai.wanaku.test.model.HttpToolConfig;
+import ai.wanaku.test.model.ResourceConfig;
+import ai.wanaku.test.model.ResourceReference;
 import ai.wanaku.test.model.ToolInfo;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -29,6 +31,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * - GET /api/v1/tools/list - List all tools
  * - POST /api/v1/tools?name={name} - Get tool by name
  * - PUT /api/v1/tools/remove?tool={name} - Remove a tool
+ * - POST /api/v1/resources/expose - Expose a resource
+ * - GET /api/v1/resources/list - List all resources
+ * - PUT /api/v1/resources/remove?resource={name} - Remove a resource
+ * - POST /api/v1/resources/exposeWithPayload - Expose a resource with configuration
  */
 public class RouterClient {
 
@@ -37,20 +43,12 @@ public class RouterClient {
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
     private final String baseUrl;
-    private String accessToken;
 
     public RouterClient(String baseUrl) {
         this.baseUrl = baseUrl;
         this.httpClient =
                 HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
         this.objectMapper = new ObjectMapper();
-    }
-
-    /**
-     * Sets the access token for authentication.
-     */
-    public void setAccessToken(String accessToken) {
-        this.accessToken = accessToken;
     }
 
     /**
@@ -304,15 +302,198 @@ public class RouterClient {
         }
     }
 
-    private HttpRequest.Builder buildRequest(String path) {
-        HttpRequest.Builder builder =
-                HttpRequest.newBuilder().uri(URI.create(baseUrl + path)).timeout(Duration.ofSeconds(30));
+    // ──────────────────────────────────────────────────────────────
+    // Resource operations
+    // ──────────────────────────────────────────────────────────────
 
-        if (accessToken != null) {
-            builder.header("Authorization", "Bearer " + accessToken);
+    /**
+     * Exposes a new resource via the Router.
+     *
+     * @param config the resource configuration
+     * @throws ResourceExistsException if a resource with the same name already exists
+     */
+    public void exposeResource(ResourceConfig config) {
+        LOG.debug("Exposing resource: {}", config.getName());
+
+        try {
+            String json = objectMapper.writeValueAsString(config.toMap());
+
+            HttpRequest request = buildRequest(WanakuTestConstants.ROUTER_RESOURCES_PATH + "/expose")
+                    .POST(HttpRequest.BodyPublishers.ofString(json))
+                    .header("Content-Type", "application/json")
+                    .build();
+
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 201 || response.statusCode() == 200) {
+                LOG.debug("Resource exposed: {}", config.getName());
+            } else if (response.statusCode() == 409) {
+                throw new ResourceExistsException("Resource '" + config.getName() + "' already exists");
+            } else {
+                throw new RouterClientException(
+                        "Failed to expose resource: " + response.statusCode() + " - " + response.body());
+            }
+        } catch (IOException | InterruptedException e) {
+            if (e instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+            }
+            throw new RouterClientException("Failed to expose resource", e);
         }
+    }
 
-        return builder;
+    /**
+     * Lists all registered resources.
+     */
+    public List<ResourceReference> listResources() {
+        LOG.debug("Listing resources");
+
+        try {
+            HttpRequest request = buildRequest(WanakuTestConstants.ROUTER_RESOURCES_PATH + "/list")
+                    .GET()
+                    .build();
+
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            LOG.debug("List resources response: {} - {}", response.statusCode(), response.body());
+
+            if (response.statusCode() == 200) {
+                JsonNode root = objectMapper.readTree(response.body());
+                JsonNode dataNode = root.has("data") ? root.get("data") : root;
+
+                if (dataNode == null || dataNode.isNull()) {
+                    return new ArrayList<>();
+                }
+
+                if (dataNode.isArray()) {
+                    return objectMapper.convertValue(dataNode, new TypeReference<List<ResourceReference>>() {});
+                }
+                return new ArrayList<>();
+            } else {
+                throw new RouterClientException("Failed to list resources: " + response.statusCode());
+            }
+        } catch (IOException | InterruptedException e) {
+            if (e instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+            }
+            throw new RouterClientException("Failed to list resources", e);
+        }
+    }
+
+    /**
+     * Removes a registered resource.
+     *
+     * @return true if removed, false if not found
+     */
+    public boolean removeResource(String name) {
+        LOG.debug("Removing resource: {}", name);
+
+        try {
+            String encodedName = URLEncoder.encode(name, StandardCharsets.UTF_8);
+            HttpRequest request = buildRequest(
+                            WanakuTestConstants.ROUTER_RESOURCES_PATH + "/remove?resource=" + encodedName)
+                    .PUT(HttpRequest.BodyPublishers.noBody())
+                    .build();
+
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            LOG.debug("Remove resource response: {} - {}", response.statusCode(), response.body());
+
+            if (response.statusCode() == 204 || response.statusCode() == 200) {
+                LOG.debug("Resource removed: {}", name);
+                return true;
+            } else if (response.statusCode() == 404) {
+                LOG.debug("Resource not found: {}", name);
+                return false;
+            } else {
+                throw new RouterClientException("Failed to remove resource: " + response.statusCode());
+            }
+        } catch (IOException | InterruptedException e) {
+            if (e instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+            }
+            throw new RouterClientException("Failed to remove resource", e);
+        }
+    }
+
+    /**
+     * Gets information about a specific resource by name.
+     *
+     * @throws ResourceNotFoundException if no resource with the given name is found
+     */
+    public ResourceReference getResourceInfo(String name) {
+        LOG.debug("Getting resource info: {}", name);
+
+        List<ResourceReference> resources = listResources();
+        return resources.stream()
+                .filter(r -> name.equals(r.getName()))
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("Resource '" + name + "' not found"));
+    }
+
+    /**
+     * Removes all registered resources.
+     */
+    public void clearAllResources() {
+        LOG.debug("Clearing all resources");
+
+        List<ResourceReference> resources = listResources();
+        for (ResourceReference resource : resources) {
+            try {
+                removeResource(resource.getName());
+            } catch (Exception e) {
+                LOG.warn("Failed to remove resource {}: {}", resource.getName(), e.getMessage());
+            }
+        }
+        LOG.debug("Cleared {} resources", resources.size());
+    }
+
+    /**
+     * Checks if a resource with the given name exists.
+     */
+    public boolean resourceExists(String name) {
+        List<ResourceReference> resources = listResources();
+        return resources.stream().anyMatch(r -> name.equals(r.getName()));
+    }
+
+    /**
+     * Exposes a resource with configuration data via /exposeWithPayload endpoint.
+     *
+     * @param config the resource configuration
+     * @param configurationData properties-format string (e.g., "some.property=value")
+     */
+    public void exposeResourceWithConfig(ResourceConfig config, String configurationData) {
+        LOG.debug("Exposing resource with configurationData: {}", config.getName());
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("payload", config.toMap());
+        body.put("configurationData", configurationData);
+
+        try {
+            String json = objectMapper.writeValueAsString(body);
+
+            HttpRequest request = buildRequest(WanakuTestConstants.ROUTER_RESOURCES_PATH + "/exposeWithPayload")
+                    .POST(HttpRequest.BodyPublishers.ofString(json))
+                    .header("Content-Type", "application/json")
+                    .build();
+
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 201 || response.statusCode() == 200) {
+                LOG.debug("Resource exposed with config: {}", config.getName());
+            } else if (response.statusCode() == 409) {
+                throw new ResourceExistsException("Resource '" + config.getName() + "' already exists");
+            } else {
+                throw new RouterClientException(
+                        "Failed to expose resource: " + response.statusCode() + " - " + response.body());
+            }
+        } catch (IOException | InterruptedException e) {
+            if (e instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+            }
+            throw new RouterClientException("Failed to expose resource", e);
+        }
+    }
+
+    private HttpRequest.Builder buildRequest(String path) {
+        return HttpRequest.newBuilder().uri(URI.create(baseUrl + path)).timeout(Duration.ofSeconds(30));
     }
 
     public String getBaseUrl() {
@@ -374,6 +555,18 @@ public class RouterClient {
 
     public static class ToolNotFoundException extends RouterClientException {
         public ToolNotFoundException(String message) {
+            super(message);
+        }
+    }
+
+    public static class ResourceExistsException extends RouterClientException {
+        public ResourceExistsException(String message) {
+            super(message);
+        }
+    }
+
+    public static class ResourceNotFoundException extends RouterClientException {
+        public ResourceNotFoundException(String message) {
             super(message);
         }
     }

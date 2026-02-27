@@ -45,16 +45,7 @@ public class McpTestClient {
     private final String accessToken;
 
     /**
-     * Creates a new MCP test client without authentication.
-     *
-     * @param baseUrl the Router base URL (e.g., "http://localhost:8080")
-     */
-    public McpTestClient(String baseUrl) {
-        this(baseUrl, null);
-    }
-
-    /**
-     * Creates a new MCP test client with bearer token authentication.
+     * Creates a new MCP test client with optional bearer token authentication.
      *
      * @param baseUrl     the Router base URL (e.g., "http://localhost:8080")
      * @param accessToken the bearer token for authorization (can be null for no auth)

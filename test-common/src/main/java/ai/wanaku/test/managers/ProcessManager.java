@@ -3,14 +3,11 @@ package ai.wanaku.test.managers;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import org.awaitility.Awaitility;
-import org.awaitility.core.ConditionTimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ai.wanaku.test.WanakuTestConstants;
@@ -38,7 +35,6 @@ public abstract class ProcessManager {
     public enum ProcessState {
         STOPPED,
         STARTING,
-        HEALTHY,
         RUNNING,
         STOPPING
     }
@@ -94,6 +90,22 @@ public abstract class ProcessManager {
         }
 
         state = ProcessState.STARTING;
+
+        // Isolate all Wanaku data to target/ so mvn clean removes it.
+        // Without this, processes write to ~/.wanaku/ which conflicts with
+        // local Wanaku usage and causes stale data between runs.
+        // Each property is used by different process types:
+        //   - infinispan.base-folder: Router (Infinispan .dat files)
+        //   - service-home: Capabilities (provisioning .properties files)
+        // Unused properties are harmlessly ignored by the receiving process.
+        Path dataDir = Path.of("target", "wanaku-data");
+        addSystemProperty(
+                "wanaku.persistence.infinispan.base-folder",
+                dataDir.resolve("router").toAbsolutePath().toString());
+        addSystemProperty(
+                "wanaku.service.service-home",
+                dataDir.resolve("services").toAbsolutePath().toString());
+
         LOG.debug("Starting {}", getProcessName());
 
         // Create log file
@@ -196,26 +208,8 @@ public abstract class ProcessManager {
      */
     protected File createLogFile(String testName) throws IOException {
         if (logProfile != null && logTestClass != null && logTestMethod != null) {
-            return LogUtils.createCapabilityLogFile(logProfile, logTestClass, logTestMethod, getProcessName());
+            return LogUtils.createCapabilityLogFile(logProfile, logTestClass, logTestMethod);
         }
         return LogUtils.createLogFile(testName, getProcessName());
-    }
-
-    /**
-     * Waits for a condition with timeout.
-     *
-     * @param condition the condition to check
-     * @param timeout   maximum time to wait
-     * @param interval  time between checks (ignored, uses Awaitility default)
-     * @return true if condition was met within timeout
-     */
-    protected boolean waitForCondition(
-            java.util.function.Supplier<Boolean> condition, Duration timeout, Duration interval) {
-        try {
-            Awaitility.await().atMost(timeout).until(condition::get);
-            return true;
-        } catch (ConditionTimeoutException e) {
-            return false;
-        }
     }
 }

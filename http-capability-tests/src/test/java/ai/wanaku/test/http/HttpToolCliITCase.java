@@ -15,7 +15,7 @@ import static org.assertj.core.api.Assumptions.assumeThat;
  * Validates that CLI commands work correctly for tool management.
  *
  * Note: The /api/v1/* endpoints are public (no auth required) per Wanaku's
- * application.properties configuration, so we use --no-auth flag.
+ * application.properties configuration.
  */
 @QuarkusTest
 class HttpToolCliITCase extends HttpCapabilityTestBase {
@@ -45,13 +45,12 @@ class HttpToolCliITCase extends HttpCapabilityTestBase {
         String toolName = "cli-weather-api";
         String toolUri = "https://httpbin.org/get";
 
-        // When - use --no-auth since /api/v1/* is public per Wanaku design
+        // When
         CLIResult result = cliExecutor.execute(
                 "tools",
                 "add",
                 "--host",
                 getRouterHost(),
-                "--no-auth",
                 "--name",
                 toolName,
                 "--type",
@@ -86,9 +85,8 @@ class HttpToolCliITCase extends HttpCapabilityTestBase {
 
         assertThat(routerClient.toolExists(toolName)).isTrue();
 
-        // When - use --no-auth since /api/v1/* is public per Wanaku design
-        CLIResult result =
-                cliExecutor.execute("tools", "remove", "--host", getRouterHost(), "--no-auth", "--name", toolName);
+        // When
+        CLIResult result = cliExecutor.execute("tools", "remove", "--host", getRouterHost(), "--name", toolName);
 
         // Then
         assertThat(result.isSuccess()).isTrue();

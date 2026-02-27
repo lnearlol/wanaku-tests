@@ -59,12 +59,10 @@ public final class LogUtils {
      * @param profile    the capability profile (e.g., "http-capability")
      * @param testClass  the test class name (e.g., "HttpToolCliITCase")
      * @param testMethod the test method name (e.g., "shouldRegisterHttpToolViaCli")
-     * @param component  the component name (e.g., "http-tool-service")
      * @return the created log file
      * @throws IOException if the log file cannot be created
      */
-    public static File createCapabilityLogFile(String profile, String testClass, String testMethod, String component)
-            throws IOException {
+    public static File createCapabilityLogFile(String profile, String testClass, String testMethod) throws IOException {
         Path logDir = ensureDirectory(profile, testClass);
         String timestamp = TIMESTAMP_FORMAT.format(Instant.now());
         String filename = String.format("%s-%s.log", sanitizeFilename(testMethod), timestamp);

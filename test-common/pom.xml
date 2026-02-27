@@ -35,12 +35,6 @@
             <artifactId>testcontainers</artifactId>
             <scope>compile</scope>
         </dependency>
-        <dependency>
-            <groupId>org.testcontainers</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <scope>compile</scope>
-        </dependency>
-
         <!-- Keycloak Testcontainer -->
         <dependency>
             <groupId>com.github.dasniko</groupId>
@@ -55,7 +49,7 @@
             <scope>compile</scope>
         </dependency>
 
-        <!-- REST Assured (required by KeycloakTestClient) -->
+        <!-- REST Assured (transitive runtime dependency of KeycloakTestClient) -->
         <dependency>
             <groupId>io.rest-assured</groupId>
             <artifactId>rest-assured</artifactId>

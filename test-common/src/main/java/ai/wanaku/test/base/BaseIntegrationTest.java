@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ai.wanaku.test.client.McpTestClient;
 import ai.wanaku.test.client.RouterClient;
+import ai.wanaku.test.config.OidcCredentials;
 import ai.wanaku.test.config.TestConfiguration;
 import ai.wanaku.test.managers.HttpCapabilityManager;
 import ai.wanaku.test.managers.KeycloakManager;
@@ -61,7 +62,7 @@ public abstract class BaseIntegrationTest {
                 .artifactsDir(baseConfig.getArtifactsDir())
                 .routerJarPath(baseConfig.getRouterJarPath())
                 .httpToolServiceJarPath(baseConfig.getHttpToolServiceJarPath())
-                .cliPath(baseConfig.getCliPath())
+                .fileProviderJarPath(baseConfig.getFileProviderJarPath())
                 .tempDataDir(tempDataDir)
                 .defaultTimeout(baseConfig.getDefaultTimeout())
                 .build();
@@ -130,7 +131,7 @@ public abstract class BaseIntegrationTest {
                 && routerManager.isRunning()) {
 
             // Get OIDC credentials from Keycloak for capability registration
-            ai.wanaku.test.config.OidcCredentials oidcCredentials = null;
+            OidcCredentials oidcCredentials = null;
             if (keycloakManager != null && keycloakManager.isRunning()) {
                 oidcCredentials = keycloakManager.getServiceCredentials();
             }
@@ -150,7 +151,6 @@ public abstract class BaseIntegrationTest {
             // Wait for HTTP Capability to register with Router
             LOG.debug("Waiting for HTTP Capability registration...");
             Awaitility.await()
-                    .atMost(Duration.ofSeconds(10))
                     .pollInterval(Duration.ofMillis(200))
                     .until(() -> routerClient.isCapabilityRegistered("http"));
             LOG.debug("HTTP Capability is registered");
@@ -261,24 +261,10 @@ public abstract class BaseIntegrationTest {
     }
 
     /**
-     * Gets the test configuration.
-     */
-    protected TestConfiguration getConfig() {
-        return config;
-    }
-
-    /**
      * Checks if the Router is available for testing.
      */
     protected boolean isRouterAvailable() {
         return routerManager != null && routerManager.isRunning();
-    }
-
-    /**
-     * Checks if Keycloak is available for testing.
-     */
-    protected boolean isKeycloakAvailable() {
-        return keycloakManager != null && keycloakManager.isRunning();
     }
 
     /**

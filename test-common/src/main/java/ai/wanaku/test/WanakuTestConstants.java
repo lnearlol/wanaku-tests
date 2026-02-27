@@ -16,6 +16,7 @@ public final class WanakuTestConstants {
     public static final String PROP_ROUTER_JAR = "wanaku.test.router.jar";
     public static final String PROP_HTTP_SERVICE_JAR = "wanaku.test.http-service.jar";
     public static final String PROP_CLI_PATH = "wanaku.test.cli.path";
+    public static final String PROP_FILE_PROVIDER_JAR = "wanaku.test.file-provider.jar";
     public static final String PROP_TIMEOUT = "wanaku.test.timeout";
 
     // Default values
@@ -30,6 +31,7 @@ public final class WanakuTestConstants {
     // API paths
     public static final String ROUTER_API_BASE_PATH = "/api/v1";
     public static final String ROUTER_TOOLS_PATH = ROUTER_API_BASE_PATH + "/tools";
+    public static final String ROUTER_RESOURCES_PATH = ROUTER_API_BASE_PATH + "/resources";
     public static final String ROUTER_CAPABILITIES_PATH = ROUTER_API_BASE_PATH + "/capabilities";
 
     // Port allocation
