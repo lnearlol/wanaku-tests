@@ -192,18 +192,19 @@ Information about a registered tool (returned from Router).
 
 ### 9. CLIExecutor
 
-Utility for executing Wanaku CLI commands.
+Utility for executing Wanaku CLI commands as subprocesses.
+Automatically injects the `--plain` flag for subcommands so that JLine routes
+output through stdout instead of `/dev/tty`, enabling reliable output capture.
+Closes the subprocess stdin to prevent JLine from blocking on System.in reads.
 
 | Field | Type | Description |
 |-------|------|-------------|
-| cliPath | String | Path to CLI binary |
-| workingDir | Path | Working directory for CLI execution |
-| environment | Map<String, String> | Environment variables |
-| timeout | Duration | Command execution timeout |
+| cliPath | String | Path to CLI binary or quarkus-run.jar |
+| timeout | Duration | Command execution timeout (default 30s) |
 
 **Operations**:
 - `execute(String... args)` → CLIResult
-- `executeWithAuth(String token, String... args)` → CLIResult
+- `isAvailable()` → boolean (runs `--version` to check)
 
 ---
 

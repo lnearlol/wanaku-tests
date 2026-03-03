@@ -153,7 +153,7 @@ As a test developer, I need to verify that tests are properly isolated and don't
 - **MockHttpServer**: *(Not implemented)* Tests use external public APIs instead for real-world validation.
 - **PortUtils**: Utility for dynamic port allocation with retry logic to handle race conditions.
 - **RouterClient**: REST API client for the Wanaku Router. Provides methods for tool registration, listing, removal, and other management operations. Used as the primary interface for test setup.
-- **CLIExecutor**: Utility for spawning Wanaku CLI commands, capturing stdout/stderr, and validating exit codes. Used for CLI-specific behavior tests.
+- **CLIExecutor**: Utility for spawning Wanaku CLI commands as subprocesses. Automatically injects the `--plain` flag so JLine routes output to stdout (instead of `/dev/tty`), enabling reliable stdout/stderr capture. Closes subprocess stdin to prevent JLine blocking. Used for CLI-specific behavior tests that verify both exit codes and output content.
 - **MCPClient**: Client for interacting with the Wanaku Router via MCP protocol. Supports tool listing, tool invocation, and authentication.
 - **BaseIntegrationTest**: Abstract base class implementing the layered isolation lifecycle pattern for all test classes.
 - **HttpTool**: Represents an HTTP tool configuration with target URL and HTTP method. Static headers can be added via `configurationData` in properties format (e.g., `header.Authorization=Bearer token`).
