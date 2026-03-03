@@ -6,9 +6,7 @@ import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -23,14 +21,10 @@ public class CLIExecutor {
     private static final Logger LOG = LoggerFactory.getLogger(CLIExecutor.class);
 
     private final String cliPath;
-    private final Map<String, String> environment = new HashMap<>();
     private Duration timeout = Duration.ofSeconds(30);
 
     public CLIExecutor(String cliPath) {
         this.cliPath = cliPath;
-        // Force dumb terminal mode to ensure output is captured when running as subprocess
-        // JLine Terminal doesn't output text without a real TTY unless TERM=dumb
-        environment.put("TERM", "dumb");
     }
 
     /**
@@ -58,8 +52,6 @@ public class CLIExecutor {
         // Auto-detect CLI type
         if (cliPath.endsWith(".jar")) {
             command.add("java");
-            // Force JLine to use dumb terminal for output capture in subprocess
-            command.add("-Djline.terminal=dumb");
             command.add("-jar");
 
             // Quarkus fast-jar format: need to run from the directory containing quarkus-run.jar
@@ -75,8 +67,11 @@ public class CLIExecutor {
             command.add(cliPath);
         }
 
-        for (String arg : args) {
-            command.add(arg);
+        command.addAll(List.of(args));
+
+        // Append --plain for subcommands so output goes to stdout instead of /dev/tty
+        if (args.length > 0 && !args[0].startsWith("-")) {
+            command.add("--plain");
         }
 
         LOG.debug("Executing: {} (workdir: {})", String.join(" ", command), effectiveWorkingDir);
@@ -87,9 +82,10 @@ public class CLIExecutor {
             if (effectiveWorkingDir != null) {
                 pb.directory(effectiveWorkingDir.toFile());
             }
-            pb.environment().putAll(environment);
-
             Process process = pb.start();
+
+            // Close subprocess stdin so JLine doesn't block reading from System.in
+            process.getOutputStream().close();
 
             // Wait for process to complete first
             boolean completed = process.waitFor(timeout.toSeconds(), TimeUnit.SECONDS);

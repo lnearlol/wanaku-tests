@@ -203,11 +203,12 @@ The project will use the MCPAssured test client from the Quarkus MCP Server proj
 
 ## CLI Integration
 
-Execute Wanaku CLI commands from Java tests and validate output:
-- Spawn `wanaku` CLI process using ProcessBuilder
-- Capture stdout and stderr streams
-- Parse output for JUnit assertions
-- Check exit codes for success/failure validation
+Execute Wanaku CLI commands from Java tests via `CLIExecutor`:
+- Spawn CLI process using ProcessBuilder
+- Inject `--plain` flag so JLine routes output to stdout (not `/dev/tty`)
+- Close subprocess stdin to prevent JLine blocking on System.in
+- Capture stdout/stderr after process completes
+- Validate exit codes and output content (e.g. verify resources/tools appear in `list` output)
 
 ## Test Examples
 

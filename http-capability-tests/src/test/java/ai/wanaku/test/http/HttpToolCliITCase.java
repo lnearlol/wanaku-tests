@@ -8,14 +8,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assumptions.assumeThat;
 
 /**
  * Tests for HTTP tool registration via CLI.
- * Validates that CLI commands work correctly for tool management.
- *
- * Note: The /api/v1/* endpoints are public (no auth required) per Wanaku's
- * application.properties configuration.
+ * Validates that CLI commands work correctly for tool management
+ * and that CLI output is properly captured from subprocess.
  */
 @QuarkusTest
 class HttpToolCliITCase extends HttpCapabilityTestBase {
@@ -25,22 +22,13 @@ class HttpToolCliITCase extends HttpCapabilityTestBase {
     @BeforeEach
     void setupCli() {
         cliExecutor = CLIExecutor.createDefault();
+        assertThat(cliExecutor.isAvailable()).as("CLI must be available").isTrue();
+        assertThat(isRouterAvailable()).as("Router must be available").isTrue();
     }
 
-    /**
-     * Gets the Router host URL for CLI commands.
-     */
-    private String getRouterHost() {
-        return routerManager != null ? routerManager.getBaseUrl() : "http://localhost:8080";
-    }
-
-    @DisplayName("Run 'wanaku tools add' command to register a new HTTP tool")
+    @DisplayName("Register a tool via CLI and verify it appears in CLI list output")
     @Test
     void shouldRegisterHttpToolViaCli() {
-        // Skip if CLI or Router not available
-        assumeThat(cliExecutor.isAvailable()).as("CLI must be available").isTrue();
-        assumeThat(isRouterAvailable()).as("Router must be available").isTrue();
-
         // Given
         String toolName = "cli-weather-api";
         String toolUri = "https://httpbin.org/get";
@@ -64,32 +52,75 @@ class HttpToolCliITCase extends HttpCapabilityTestBase {
         assertThat(result.isSuccess())
                 .as("CLI command should succeed: %s", result.getCombinedOutput())
                 .isTrue();
-
-        // Verify via REST API
         assertThat(routerClient.toolExists(toolName)).isTrue();
+
+        // Verify the tool shows up in CLI list output
+        CLIResult listResult = cliExecutor.execute("tools", "list", "--host", getRouterHost());
+        assertThat(listResult.isSuccess()).as("CLI list should succeed").isTrue();
+        assertThat(listResult.getCombinedOutput())
+                .as("CLI list output should contain the registered tool")
+                .contains(toolName);
     }
 
-    @DisplayName("Run 'wanaku tools remove' command to delete a registered tool")
+    @DisplayName("List multiple tools via CLI and verify all are captured in output")
+    @Test
+    void shouldListToolsViaCli() {
+        // Given - register multiple tools via REST
+        String[] toolNames = {"cli-list-tool-alpha", "cli-list-tool-beta", "cli-list-tool-gamma"};
+        for (String name : toolNames) {
+            routerClient.registerTool(ai.wanaku.test.model.HttpToolConfig.builder()
+                    .name(name)
+                    .uri("https://httpbin.org/get")
+                    .build());
+        }
+
+        // When
+        CLIResult result = cliExecutor.execute("tools", "list", "--host", getRouterHost());
+
+        // Then
+        assertThat(result.isSuccess())
+                .as("CLI list command should succeed: %s", result.getCombinedOutput())
+                .isTrue();
+
+        String output = result.getCombinedOutput();
+        assertThat(output).as("CLI output must not be empty").isNotEmpty();
+
+        for (String name : toolNames) {
+            assertThat(output)
+                    .as("CLI list output should contain tool '%s'", name)
+                    .contains(name);
+        }
+    }
+
+    @DisplayName("Remove a tool via CLI and verify it no longer appears in CLI list output")
     @Test
     void shouldRemoveToolViaCli() {
-        // Skip if CLI or Router not available
-        assumeThat(cliExecutor.isAvailable()).as("CLI must be available").isTrue();
-        assumeThat(isRouterAvailable()).as("Router must be available").isTrue();
-
-        // Given - Register a tool first
+        // Given - register a tool first via REST
         String toolName = "cli-remove-test";
         routerClient.registerTool(ai.wanaku.test.model.HttpToolConfig.builder()
                 .name(toolName)
                 .uri("https://httpbin.org/delete")
                 .build());
-
         assertThat(routerClient.toolExists(toolName)).isTrue();
 
         // When
         CLIResult result = cliExecutor.execute("tools", "remove", "--host", getRouterHost(), "--name", toolName);
 
         // Then
-        assertThat(result.isSuccess()).isTrue();
+        assertThat(result.isSuccess())
+                .as("CLI command should succeed: %s", result.getCombinedOutput())
+                .isTrue();
         assertThat(routerClient.toolExists(toolName)).isFalse();
+
+        // Verify the tool no longer shows up in CLI list output
+        CLIResult listResult = cliExecutor.execute("tools", "list", "--host", getRouterHost());
+        assertThat(listResult.isSuccess()).as("CLI list should succeed").isTrue();
+        assertThat(listResult.getCombinedOutput())
+                .as("CLI list output should not contain the removed tool")
+                .doesNotContain(toolName);
+    }
+
+    private String getRouterHost() {
+        return routerManager != null ? routerManager.getBaseUrl() : "http://localhost:8080";
     }
 }
