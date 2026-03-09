@@ -107,11 +107,25 @@ wanaku-tests/
 │       ├── RestApiResourceITCase.java     # Expose, list, remove resources via REST API (6)
 │       ├── McpResourceITCase.java         # List and read resources via MCP (3)
 │       └── CliResourceITCase.java         # Expose and remove resources via CLI (2)
+├── camel-integration-capability-tests/ # CIC tests (19 tests)
+│   ├── src/test/java/ai/wanaku/test/camel/
+│   │   ├── CamelBasicToolITCase.java      # Simple tools: register, invoke, params (8)
+│   │   ├── CamelFileResourceITCase.java   # File resources: list, read, error (6)
+│   │   ├── CamelPostgresToolITCase.java   # PostgreSQL JDBC tool via Testcontainers (3)
+│   │   └── CamelMultiInstanceITCase.java  # Multiple CIC instances simultaneously (2)
+│   └── src/test/resources/fixtures/       # Static YAML config per scenario
+│       ├── simple-tool/                   # direct: routes + tool rules
+│       ├── file-resource/                 # file route + resource rules
+│       ├── postgres-tool/                 # JDBC route + deps + seed.sql
+│       ├── multi-instance-tool/           # tool for multi-instance test
+│       └── multi-instance-resource/       # resource for multi-instance test
 └── test-common/           # Shared infrastructure
     └── src/main/java/ai/wanaku/test/
         ├── base/      # BaseIntegrationTest
-        ├── client/    # RouterClient, McpTestClient, CLIExecutor
-        └── managers/  # KeycloakManager, RouterManager, HttpCapabilityManager
+        ├── client/    # RouterClient, McpTestClient, CLIExecutor, DataStoreClient
+        ├── fixtures/  # TestFixtures (load + ${VAR} substitution)
+        ├── managers/  # KeycloakManager, RouterManager, CamelCapabilityManager
+        └── services/  # PostgresServiceManager (Testcontainers)
 ```
 
 ## Logs
@@ -157,5 +171,5 @@ target/logs/
 
 - [HTTP Capability Tests](http-capability-tests/README.md) — HTTP tool registration and invocation
 - [Resources Tests](resources-tests/README.md) — file resource management via REST API, MCP, and CLI
-- *Camel Integration Capability Tests* — planned
+- [Camel Integration Capability Tests](camel-integration-capability-tests/README.md) — CIC tools, resources, PostgreSQL, multi-instance
 - *Integration Tests* — cross-capability tests, e2e flows (planned)
