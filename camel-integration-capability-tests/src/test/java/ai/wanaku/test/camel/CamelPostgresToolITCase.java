@@ -100,8 +100,8 @@ class CamelPostgresToolITCase extends CamelCapabilityTestBase {
                             .as("Invalid SQL should return internal error code")
                             .isEqualTo(-32603);
                     assertThat(error.message())
-                            .as("Error message should not be empty")
-                            .isNotEmpty();
+                            .as("Error message should indicate internal error")
+                            .containsIgnoringCase("Internal error");
                 })
                 .send()
                 .thenAssertResults();

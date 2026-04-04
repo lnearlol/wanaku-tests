@@ -108,7 +108,12 @@ class CamelFileResourceITCase extends CamelCapabilityTestBase {
                             "=== MCP resourcesRead error [non-existent]: code={}, message={}",
                             error.code(),
                             error.message());
-                    assertThat(error.message()).isNotEmpty();
+                    assertThat(error.code())
+                            .as("Non-existent file should return internal error code")
+                            .isEqualTo(-32603);
+                    assertThat(error.message())
+                            .as("Error message should indicate internal error")
+                            .containsIgnoringCase("Internal error");
                 })
                 .send()
                 .thenAssertResults();
