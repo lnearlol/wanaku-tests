@@ -8,9 +8,9 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-ROUTER_URL="https://github.com/wanaku-ai/wanaku/releases/download/early-access/wanaku-router-backend-0.1.0-SNAPSHOT.zip"
-HTTP_URL="https://github.com/wanaku-ai/wanaku/releases/download/early-access/wanaku-tool-service-http-0.1.0-SNAPSHOT.zip"
-CLI_URL="https://github.com/wanaku-ai/wanaku/releases/download/early-access/wanaku-cli-0.1.0-SNAPSHOT.zip"
+ROUTER_URL="https://github.com/wanaku-ai/wanaku/releases/download/v0.1.0/wanaku-router-backend-0.1.0.zip"
+HTTP_URL="https://github.com/wanaku-ai/wanaku/releases/download/v0.1.0/wanaku-tool-service-http-0.1.0.zip"
+CLI_URL="https://github.com/wanaku-ai/wanaku/releases/download/v0.1.0/wanaku-cli-0.1.0.zip"
 FILE_PROVIDER_URL="https://github.com/wanaku-ai/wanaku-examples/releases/download/early-access/wanaku-provider-file-0.1.0-SNAPSHOT.zip"
 CIC_URL="https://github.com/wanaku-ai/camel-integration-capability/releases/download/early-access/camel-integration-capability-main-0.1.0-SNAPSHOT-jar-with-dependencies.jar"
 
