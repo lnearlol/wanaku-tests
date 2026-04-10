@@ -33,25 +33,25 @@ Tests require Router, HTTP Capability, File Provider, and CLI JARs. Choose one o
 WANAKU_DIR=/path/to/wanaku
 EXAMPLES_DIR=/path/to/wanaku-examples
 
-cp -r $WANAKU_DIR/wanaku/wanaku-router/target/quarkus-app artifacts/wanaku-router-backend-0.1.0-SNAPSHOT
-cp -r $WANAKU_DIR/wanaku/capabilities/tools/wanaku-tool-service-http/target/quarkus-app artifacts/wanaku-tool-service-http-0.1.0-SNAPSHOT
+cp -r $WANAKU_DIR/wanaku/wanaku-router/target/quarkus-app artifacts/wanaku-router-backend-0.1.0
+cp -r $WANAKU_DIR/wanaku/capabilities/tools/wanaku-tool-service-http/target/quarkus-app artifacts/wanaku-tool-service-http-0.1.0
 cp -r $EXAMPLES_DIR/providers/wanaku-provider-file/target/quarkus-app artifacts/wanaku-provider-file
-cp -r $WANAKU_DIR/wanaku/cli/target/quarkus-app artifacts/wanaku-cli-0.1.0-SNAPSHOT
+cp -r $WANAKU_DIR/wanaku/cli/target/quarkus-app artifacts/wanaku-cli-0.1.0
 ```
 
 After setup:
 ```
 artifacts/
-├── wanaku-router-backend-0.1.0-SNAPSHOT/
+├── wanaku-router-backend-0.1.0/
 │   ├── quarkus-run.jar
 │   └── lib/
-├── wanaku-tool-service-http-0.1.0-SNAPSHOT/
+├── wanaku-tool-service-http-0.1.0/
 │   ├── quarkus-run.jar
 │   └── lib/
 ├── wanaku-provider-file/
 │   ├── quarkus-run.jar
 │   └── lib/
-└── wanaku-cli-0.1.0-SNAPSHOT/
+└── wanaku-cli-0.1.0/
     ├── quarkus-run.jar
     └── lib/
 ```
@@ -63,7 +63,7 @@ CLI tests require `wanaku` CLI. Choose one option:
 **Option A: Use CLI JAR from artifacts**
 ```bash
 # Set system property to point to CLI JAR
-mvn clean install -Dwanaku.test.cli.path=../artifacts/wanaku-cli-0.1.0-SNAPSHOT/quarkus-run.jar
+mvn clean install -Dwanaku.test.cli.path=../artifacts/wanaku-cli-0.1.0/quarkus-run.jar
 ```
 
 **Option B: Install globally via jbang**
@@ -80,7 +80,7 @@ wanaku --version
 
 ```bash
 # Recommended: build and run all tests with CLI JAR and debug logging
-mvn clean install -Dwanaku.test.cli.path=../artifacts/wanaku-cli-0.1.0-SNAPSHOT/quarkus-run.jar -Dwanaku.log.level=DEBUG
+mvn clean install -Dwanaku.test.cli.path=../artifacts/wanaku-cli-0.1.0/quarkus-run.jar -Dwanaku.log.level=DEBUG
 
 # Build and run all tests (requires wanaku CLI installed via jbang)
 mvn clean install
@@ -92,7 +92,7 @@ mvn clean install -pl http-capability-tests -Dtest=HttpToolRegistrationITCase#sh
 mvn clean install -Dwanaku.log.level=DEBUG
 
 # Run with CLI JAR instead of system CLI
-mvn clean install -Dwanaku.test.cli.path=../artifacts/wanaku-cli-0.1.0-SNAPSHOT/quarkus-run.jar
+mvn clean install -Dwanaku.test.cli.path=../artifacts/wanaku-cli-0.1.0/quarkus-run.jar
 ```
 
 ## Project Structure
